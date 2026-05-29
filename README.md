@@ -3,12 +3,11 @@
 A browser-based support operations dashboard built with HTML, CSS, JavaScript, and Supabase. The app lets users create, update, organize, lock, delete, sync, and export support cases from a persistent backend.
 
 ## Live Demo
-
-Add your hosted link here.
+(https://ndavisdev.github.io/support_dashboard/)
 
 ## GitHub Repository
 
-Add your GitHub repo link here.
+https://github.com/ndavisdev/support_dashboard
 
 ## Why I Built This
 
