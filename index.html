@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support Operations Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: rgba(17, 24, 39, 0.88);
+      --card-solid: #111827;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border: rgba(255, 255, 255, 0.1);
+      --input-border: rgba(255, 255, 255, 0.14);
+      --hover: rgba(255, 255, 255, 0.06);
+      --shadow: rgba(0, 0, 0, 0.28);
+      --primary: #7c3aed;
+      --primary-soft: rgba(124, 58, 237, 0.18);
+      --danger: #fb7185;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23f9fafb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+
+    body.light {
+      --bg: #f4f6f8;
+      --card: rgba(255, 255, 255, 0.92);
+      --card-solid: #ffffff;
+      --text: #151922;
+      --muted: #687083;
+      --border: #e6e9ef;
+      --input-border: #d8dde7;
+      --hover: #fafbfc;
+      --shadow: rgba(21, 25, 34, 0.07);
+      --primary: #6d28d9;
+      --primary-soft: rgba(109, 40, 217, 0.14);
+      --danger: #c43b4b;
+      --success: #176b3a;
+      --warning: #8a5a00;
+      --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23111827' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, Arial, sans-serif; }
+
+    body {
+      min-height: 100vh;
+      padding: 28px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.28), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.18), transparent 28%),
+        var(--bg);
+    }
+
+    .app { max-width: 1200px; margin: 0 auto; animation: fadeIn 0.3s ease both; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 24px; }
+    h1 { font-size: 32px; letter-spacing: -0.04em; margin-bottom: 6px; }
+    .muted, .title-block p { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+    button, input, select, textarea {
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      padding: 11px 13px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    body.light button, body.light input, body.light textarea, body.light select { background: #fff; }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: var(--select-arrow);
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px 16px;
+      padding-right: 42px;
+    }
+
+    body.light select {
+      background-image: var(--select-arrow);
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px 16px;
+    }
+
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+    button { cursor: pointer; font-weight: 800; }
+    button:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18); background: var(--hover); }
+    .primary { background: linear-gradient(135deg, var(--primary), #4f46e5); color: white; border-color: transparent; }
+    .danger { color: var(--danger); }
+
+    body.light .primary {
+      background: linear-gradient(135deg, #6d28d9, #4f46e5);
+      color: white;
+      border-color: transparent;
+    }
+
+    select option {
+      background: #111827;
+      color: #f9fafb;
+    }
+
+    body.light select option {
+      background: #ffffff;
+      color: #111827;
+    }
+
+
+
+    .theme-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; }
+    .theme-switch { width: 42px; height: 22px; border-radius: 999px; background: var(--primary-soft); border: 1px solid var(--input-border); padding: 2px; display: flex; align-items: center; }
+    .theme-knob { width: 16px; height: 16px; border-radius: 50%; background: var(--primary); transform: translateX(18px); transition: 0.22s ease; }
+    body.light .theme-knob { transform: translateX(0); background: #f59e0b; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+    .metric-card, .panel { background: var(--card); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 18px 46px var(--shadow); backdrop-filter: blur(16px); }
+    .metric-card { padding: 18px; animation: fadeUp 0.35s ease both; }
+    .metric-card span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .metric-card strong { font-size: 30px; letter-spacing: -0.04em; }
+
+    .chart-panel {
+      margin-bottom: 18px;
+      padding: 18px;
+    }
+
+    .chart-panel h2 {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .chart {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 34px;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chart-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .chart-track {
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    body.light .chart-track {
+      background: #eef2f7;
+    }
+
+    .chart-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width 0.35s ease;
+    }
+
+    .chart-bar.open { background: #60a5fa; }
+    .chart-bar.progress { background: #a78bfa; }
+    .chart-bar.resolved { background: #34d399; }
+
+    .chart-value {
+      font-weight: 900;
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .toolbar { display: grid; grid-template-columns: 1.4fr repeat(5, 1fr); gap: 12px; margin-bottom: 18px; }
+    .layout { display: grid; grid-template-columns: 360px 1fr; gap: 18px; align-items: start; }
+    .panel { padding: 18px; }
+    .panel h2 { font-size: 18px; margin-bottom: 14px; }
+    .form-grid { display: grid; gap: 12px; }
+    label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 800; }
+    textarea { min-height: 92px; resize: vertical; }
+
+    .table-wrap { overflow-x: auto; margin-top: 12px; border-radius: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+    tr:hover td { background: var(--hover); }
+
+    .sort-header { display: inline-flex; align-items: center; gap: 6px; }
+    .sort-arrows { display: inline-flex; gap: 3px; }
+    .sort-arrow { padding: 1px 5px; font-size: 11px; border-radius: 7px; background: transparent; color: var(--muted); box-shadow: none; }
+    .sort-arrow:hover { transform: none; box-shadow: none; }
+    .sort-arrow.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .badge { display: inline-flex; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .priority-high { background: rgba(251, 113, 133, 0.16); color: #fb7185; }
+    .priority-medium { background: rgba(251, 191, 36, 0.16); color: #fbbf24; }
+    .priority-low { background: rgba(52, 211, 153, 0.16); color: #34d399; }
+    .status-open { background: rgba(96, 165, 250, 0.16); color: #60a5fa; }
+    .status-progress { background: rgba(167, 139, 250, 0.16); color: #a78bfa; }
+    .status-resolved { background: rgba(52, 211, 153, 0.16); color: #34d399; }
+    .sla-risk { color: var(--danger); font-weight: 900; }
+
+    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+
+    .kanban-board { display: none; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+    .kanban-board.active { display: grid; }
+    .kanban-column { border: 1px solid var(--border); border-radius: 18px; padding: 14px; min-height: 320px; transition: 0.2s ease; }
+    .open-column { background: rgba(96, 165, 250, 0.06); }
+    .progress-column { background: rgba(167, 139, 250, 0.06); }
+    .resolved-column { background: rgba(52, 211, 153, 0.06); }
+    .kanban-column.drag-over { border-color: var(--primary); background: var(--primary-soft); transform: translateY(-2px); }
+    .kanban-column h3 { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 14px; text-transform: uppercase; margin-bottom: 12px; }
+    .kanban-count { min-width: 24px; height: 24px; border-radius: 999px; background: var(--primary-soft); display: inline-flex; align-items: center; justify-content: center; font-weight: 900; font-size: 12px; }
+
+
+    .kanban-tip {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--primary-soft);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .kanban-tip.active {
+      display: block;
+    }
+
+    .locked-card {
+      cursor: not-allowed;
+      opacity: 0.82;
+    }
+
+    .locked-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+      background: rgba(251, 191, 36, 0.16);
+      color: #fbbf24;
+    }
+
+    .kanban-card { border: 1px solid var(--border); border-left: 5px solid var(--primary); border-radius: 16px; background: var(--card-solid); padding: 13px; margin-bottom: 10px; box-shadow: 0 10px 24px var(--shadow); cursor: grab; transition: 0.18s ease; }
+    .kanban-card:hover { transform: translateY(-4px); }
+    .kanban-card.dragging { opacity: 0.45; transform: rotate(1deg) scale(0.98); }
+    .priority-strip-high { border-left-color: #fb7185; }
+    .priority-strip-medium { border-left-color: #fbbf24; }
+    .priority-strip-low { border-left-color: #34d399; }
+    .kanban-card-title { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+    .kanban-card-title span { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .kanban-issue { color: var(--muted); font-size: 13px; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .kanban-meta, .kanban-info-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+    .kanban-info-row { justify-content: space-between; color: var(--muted); font-size: 13px; }
+    .compact-actions button { padding: 8px 10px; font-size: 13px; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 900; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,0.58); backdrop-filter: blur(10px); }
+    .modal-backdrop[hidden] { display: none; }
+    .confirm-modal { width: min(420px, 100%); border: 1px solid var(--border); border-radius: 24px; background: var(--card-solid); padding: 24px; box-shadow: 0 24px 80px rgba(0,0,0,0.35); animation: modalPop 0.22s ease both; }
+    .modal-icon { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: rgba(251,191,36,0.16); color: var(--warning); font-size: 22px; margin-bottom: 14px; }
+    .confirm-modal h2 { font-size: 22px; margin-bottom: 8px; }
+    .confirm-modal p, .modal-details { color: var(--muted); line-height: 1.45; }
+    .modal-details { display: none; border: 1px solid var(--border); border-radius: 16px; background: rgba(255,255,255,0.04); padding: 12px; margin-bottom: 16px; font-size: 13px; }
+    .modal-details.active { display: block; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+    .danger-action { background: linear-gradient(135deg, #e11d48, #be123c); }
+
+    .toast-container { position: fixed; right: 22px; bottom: 22px; display: grid; gap: 10px; z-index: 999; }
+    .toast { min-width: 220px; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 14px; background: var(--card-solid); padding: 12px 14px; box-shadow: 0 14px 34px var(--shadow); animation: toastIn 0.24s ease both; font-weight: 800; }
+    .toast.success { border-left-color: var(--success); }
+    .toast.danger { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(12px) scale(0.98); } }
+    @keyframes modalPop { from { opacity: 0; transform: translateY(10px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    @media (max-width: 1100px) { .toolbar { grid-template-columns: 1fr 1fr 1fr; } }
+    @media (max-width: 900px) { header, .layout { display: grid; grid-template-columns: 1fr; } .metrics, .kanban-board { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 620px) { body { padding: 16px; } .metrics, .toolbar, .kanban-board { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header>
+      <div class="title-block">
+        <h1>Support Operations Dashboard</h1>
+        <p>Persistent case tracking powered by Supabase.</p>
+      </div>
+      <div class="header-actions">
+        <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="Toggle theme">
+          <span>☀</span><span class="theme-switch"><span class="theme-knob"></span></span><span>☾</span>
+        </button>
+        <button id="viewToggleBtn" type="button">Kanban View</button>
+        <button id="syncDataBtn" type="button">Sync Data</button>
+        <button id="importCsvBtn" type="button">Import CSV</button>
+        <input id="importCsvInput" type="file" accept=".csv,text/csv" hidden />
+        <button id="exportCsvBtn" type="button">Export CSV</button>
+        <button id="clearDataBtn" type="button" class="danger">Clear Data</button>
+      </div>
+    </header>
+
+    <section class="metrics">
+      <article class="metric-card"><span>Total Cases</span><strong id="totalCases">0</strong></article>
+      <article class="metric-card"><span>Open Cases</span><strong id="openCases">0</strong></article>
+      <article class="metric-card"><span>High Priority</span><strong id="highPriorityCases">0</strong></article>
+      <article class="metric-card"><span>SLA Risk</span><strong id="slaRiskCases">0</strong></article>
+    </section>
+
+    <section class="panel chart-panel">
+      <h2>Case Status Overview</h2>
+      <p class="muted">Live distribution of cases pulled from Supabase.</p>
+      <div class="chart">
+        <div class="chart-row">
+          <span class="chart-label">Open</span>
+          <div class="chart-track"><div id="openChartBar" class="chart-bar open"></div></div>
+          <span id="openChartValue" class="chart-value">0</span>
+        </div>
+        <div class="chart-row">
+          <span class="chart-label">In Progress</span>
+          <div class="chart-track"><div id="progressChartBar" class="chart-bar progress"></div></div>
+          <span id="progressChartValue" class="chart-value">0</span>
+        </div>
+        <div class="chart-row">
+          <span class="chart-label">Resolved</span>
+          <div class="chart-track"><div id="resolvedChartBar" class="chart-bar resolved"></div></div>
+          <span id="resolvedChartValue" class="chart-value">0</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <input id="searchInput" type="search" placeholder="Search customer, issue, owner, or notes..." />
+      <select id="statusFilter"><option value="all">All Statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option></select>
+      <select id="priorityFilter"><option value="all">All Priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+      <select id="ownerFilter"><option value="all">All Owners</option></select>
+      <select id="sortSelect"><option value="neutral">No Sort</option><option value="sla">Sort by SLA Date</option><option value="priority">Sort by Priority</option><option value="status">Sort by Status</option><option value="customer">Sort by Customer</option><option value="owner">Sort by Owner</option><option value="createdAt">Sort by Created Date</option></select>
+      <select id="sortDirectionSelect"><option value="asc">Ascending</option><option value="desc">Descending</option></select>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2 id="formTitle">Add Case</h2>
+        <form id="caseForm" class="form-grid">
+          <input id="caseId" type="hidden" />
+          <label>Customer / Account<input id="customerInput" required placeholder="Example: Enterprise Client A" /></label>
+          <label>Issue Type
+            <select id="issueInput" required>
+              <option value="">Select issue type</option>
+              <option>Login / Access Issue</option>
+              <option>Password Reset</option>
+              <option>Account Lockout</option>
+              <option>Billing Inquiry</option>
+              <option>Payment Processing</option>
+              <option>Hardware Failure</option>
+              <option>Software Bug</option>
+              <option>Network Connectivity</option>
+              <option>Escalation Request</option>
+              <option>Documentation Issue</option>
+              <option>User Training</option>
+              <option>Feature Request</option>
+              <option>Compliance Review</option>
+              <option>Other</option>
+            </select>
+          </label>
+          <label>Owner<input id="ownerInput" required placeholder="Example: Nick" /></label>
+          <label>Priority<select id="priorityInput" required><option>High</option><option>Medium</option><option>Low</option></select></label>
+          <label>Status<select id="statusInput" required><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+          <label>SLA Due Date<input id="slaInput" type="date" required /></label>
+          <label>Notes<textarea id="notesInput" maxlength="240" placeholder="Extra context, max 240 characters..."></textarea></label>
+          <button class="primary" type="submit">Save Case</button>
+          <button id="cancelEditBtn" type="button" hidden>Cancel Edit</button>
+        </form>
+      </aside>
+
+      <section class="panel">
+        <h2>Case Queue</h2>
+        <p class="muted">Save writes to Supabase. Sync pulls the latest backend data.</p>
+
+        <div id="tableView" class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th><span class="sort-header">Customer <span class="sort-arrows"><button class="sort-arrow" data-sort-key="customer" data-direction="asc" type="button">↑</button><button class="sort-arrow" data-sort-key="customer" data-direction="desc" type="button">↓</button></span></span></th>
+                <th>Issue</th>
+                <th><span class="sort-header">Owner <span class="sort-arrows"><button class="sort-arrow" data-sort-key="owner" data-direction="asc" type="button">↑</button><button class="sort-arrow" data-sort-key="owner" data-direction="desc" type="button">↓</button></span></span></th>
+                <th><span class="sort-header">Priority <span class="sort-arrows"><button class="sort-arrow" data-sort-key="priority" data-direction="asc" type="button">↑</button><button class="sort-arrow" data-sort-key="priority" data-direction="desc" type="button">↓</button></span></span></th>
+                <th><span class="sort-header">Status <span class="sort-arrows"><button class="sort-arrow" data-sort-key="status" data-direction="asc" type="button">↑</button><button class="sort-arrow" data-sort-key="status" data-direction="desc" type="button">↓</button></span></span></th>
+                <th><span class="sort-header">SLA <span class="sort-arrows"><button class="sort-arrow" data-sort-key="sla" data-direction="asc" type="button">↑</button><button class="sort-arrow" data-sort-key="sla" data-direction="desc" type="button">↓</button></span></span></th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="caseTableBody"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state" hidden>No cases found.</div>
+        </div>
+
+        <p id="kanbanTip" class="kanban-tip">Tip: drag unlocked cards between Open, In Progress, and Resolved to update their status.</p>
+        <div id="kanbanView" class="kanban-board">
+          <section class="kanban-column open-column" data-status="Open"><h3>Open <span id="openKanbanCount" class="kanban-count">0</span></h3><div id="openKanbanColumn"></div></section>
+          <section class="kanban-column progress-column" data-status="In Progress"><h3>In Progress <span id="progressKanbanCount" class="kanban-count">0</span></h3><div id="progressKanbanColumn"></div></section>
+          <section class="kanban-column resolved-column" data-status="Resolved"><h3>Resolved <span id="resolvedKanbanCount" class="kanban-count">0</span></h3><div id="resolvedKanbanColumn"></div></section>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="confirmModal" class="modal-backdrop" hidden>
+    <div class="confirm-modal" role="dialog" aria-modal="true">
+      <div class="modal-icon">⚠</div>
+      <h2 id="confirmTitle">Confirm Action</h2>
+      <p id="confirmMessage">This action cannot be undone.</p>
+      <div id="confirmDetails" class="modal-details"></div>
+      <div class="modal-actions">
+        <button id="cancelConfirmBtn" type="button">Cancel</button>
+        <button id="confirmActionBtn" type="button" class="primary danger-action">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script>
+    const SUPABASE_URL = "https://zeuoeueyzpzsqrplqhgp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_Egs7IxUMJlmZvrYYnIBYyQ_3xK0NY7L";
+    const REST_URL = `${SUPABASE_URL}/rest/v1/cases`;
+
+    const priorityRank = { High: 1, Medium: 2, Low: 3 };
+    const statusRank = { Open: 1, "In Progress": 2, Resolved: 3 };
+
+    const state = {
+      cases: [],
+      sortKey: null,
+      sortDirection: null,
+      viewMode: "table",
+      pendingConfirmAction: null
+    };
+
+    const $ = id => document.getElementById(id);
+
+    const elements = {
+      form: $("caseForm"),
+      formTitle: $("formTitle"),
+      caseId: $("caseId"),
+      customerInput: $("customerInput"),
+      issueInput: $("issueInput"),
+      ownerInput: $("ownerInput"),
+      priorityInput: $("priorityInput"),
+      statusInput: $("statusInput"),
+      slaInput: $("slaInput"),
+      notesInput: $("notesInput"),
+      searchInput: $("searchInput"),
+      statusFilter: $("statusFilter"),
+      priorityFilter: $("priorityFilter"),
+      ownerFilter: $("ownerFilter"),
+      sortSelect: $("sortSelect"),
+      sortDirectionSelect: $("sortDirectionSelect"),
+      tableView: $("tableView"),
+      kanbanView: $("kanbanView"),
+      kanbanTip: $("kanbanTip"),
+      viewToggleBtn: $("viewToggleBtn"),
+      syncDataBtn: $("syncDataBtn"),
+      importCsvBtn: $("importCsvBtn"),
+      importCsvInput: $("importCsvInput"),
+      exportCsvBtn: $("exportCsvBtn"),
+      clearDataBtn: $("clearDataBtn"),
+      themeToggleBtn: $("themeToggleBtn"),
+      cancelEditBtn: $("cancelEditBtn"),
+      caseTableBody: $("caseTableBody"),
+      emptyState: $("emptyState"),
+      totalCases: $("totalCases"),
+      openCases: $("openCases"),
+      highPriorityCases: $("highPriorityCases"),
+      slaRiskCases: $("slaRiskCases"),
+      openChartBar: $("openChartBar"),
+      progressChartBar: $("progressChartBar"),
+      resolvedChartBar: $("resolvedChartBar"),
+      openChartValue: $("openChartValue"),
+      progressChartValue: $("progressChartValue"),
+      resolvedChartValue: $("resolvedChartValue"),
+      openKanbanColumn: $("openKanbanColumn"),
+      progressKanbanColumn: $("progressKanbanColumn"),
+      resolvedKanbanColumn: $("resolvedKanbanColumn"),
+      openKanbanCount: $("openKanbanCount"),
+      progressKanbanCount: $("progressKanbanCount"),
+      resolvedKanbanCount: $("resolvedKanbanCount"),
+      confirmModal: $("confirmModal"),
+      confirmTitle: $("confirmTitle"),
+      confirmMessage: $("confirmMessage"),
+      confirmDetails: $("confirmDetails"),
+      cancelConfirmBtn: $("cancelConfirmBtn"),
+      confirmActionBtn: $("confirmActionBtn"),
+      toastContainer: $("toastContainer")
+    };
+
+    async function api(path = "", options = {}) {
+      const response = await fetch(`${REST_URL}${path}`, {
+        ...options,
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+          ...(options.headers || {})
+        }
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Request failed: ${response.status}`);
+      }
+
+      if (response.status === 204) return [];
+      return response.json();
+    }
+
+    function normalizeText(value) {
+      return String(value || "").toLowerCase().trim();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function isLocked(item) {
+      return String(item.notes || "").includes("[LOCKED]");
+    }
+
+    function cleanNotes(notes) {
+      return String(notes || "").replaceAll("[LOCKED]", "").trim();
+    }
+
+    function cleanPriority(value) {
+      const input = normalizeText(value);
+      if (input === "high") return "High";
+      if (input === "medium") return "Medium";
+      if (input === "low") return "Low";
+      return "Low";
+    }
+
+    function cleanStatus(value) {
+      const input = normalizeText(value);
+      if (input === "open") return "Open";
+      if (input === "in progress" || input === "in_progress" || input === "progress") return "In Progress";
+      if (input === "resolved" || input === "closed" || input === "complete") return "Resolved";
+      return "Open";
+    }
+
+    function normalizeCase(item) {
+      return {
+        id: item.id,
+        customer: item.customer || "Unassigned Account",
+        issue: item.issue || "Other",
+        owner: item.owner || "Unassigned",
+        priority: cleanPriority(item.priority),
+        status: cleanStatus(item.status),
+        sla: item.sla || new Date().toISOString().slice(0, 10),
+        notes: item.notes || "",
+        displayNotes: cleanNotes(item.notes),
+        createdAt: item.created_at || item.createdAt || new Date().toISOString()
+      };
+    }
+
+    async function loadCases() {
+      try {
+        const data = await api("?select=*");
+        state.cases = data.map(normalizeCase);
+      } catch (error) {
+        console.error(error);
+        state.cases = [];
+        showToast("Failed to load Supabase data", "danger");
+      }
+    }
+
+    function resetFilters() {
+      elements.searchInput.value = "";
+      elements.statusFilter.value = "all";
+      elements.priorityFilter.value = "all";
+      elements.ownerFilter.value = "all";
+      state.sortKey = null;
+      state.sortDirection = null;
+    }
+
+    function isSlaRisk(item) {
+      if (item.status === "Resolved") return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const slaDate = new Date(`${item.sla}T00:00:00`);
+      return Math.ceil((slaDate - today) / 86400000) <= 2;
+    }
+
+    function compareCases(a, b) {
+      if (!state.sortKey || !state.sortDirection) return 0;
+      let result = 0;
+      if (state.sortKey === "priority") result = priorityRank[a.priority] - priorityRank[b.priority];
+      else if (state.sortKey === "status") result = statusRank[a.status] - statusRank[b.status];
+      else if (state.sortKey === "sla") result = new Date(a.sla) - new Date(b.sla);
+      else if (state.sortKey === "createdAt") result = new Date(a.createdAt) - new Date(b.createdAt);
+      else result = normalizeText(a[state.sortKey]).localeCompare(normalizeText(b[state.sortKey]));
+      return state.sortDirection === "asc" ? result : result * -1;
+    }
+
+    function getVisibleCases() {
+      const query = normalizeText(elements.searchInput.value);
+      const status = elements.statusFilter.value;
+      const priority = elements.priorityFilter.value;
+      const owner = elements.ownerFilter.value;
+
+      return state.cases
+        .filter(item => {
+          const searchBlob = normalizeText(`${item.customer} ${item.issue} ${item.owner} ${item.notes}`);
+          return searchBlob.includes(query)
+            && (status === "all" || item.status === status)
+            && (priority === "all" || item.priority === priority)
+            && (owner === "all" || item.owner === owner);
+        })
+        .sort(compareCases);
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "N/A";
+      return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${dateString}T00:00:00`));
+    }
+
+    function formatShortDate(dateString) {
+      if (!dateString) return "N/A";
+      return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(dateString));
+    }
+
+    function badgeClass(type, value) {
+      return `${type}-${value.toLowerCase().replace(" ", "-")}`;
+    }
+
+    function renderMetrics() {
+      elements.totalCases.textContent = state.cases.length;
+      elements.openCases.textContent = state.cases.filter(item => item.status === "Open").length;
+      elements.highPriorityCases.textContent = state.cases.filter(item => item.priority === "High").length;
+      elements.slaRiskCases.textContent = state.cases.filter(isSlaRisk).length;
+    }
+
+    function renderChart() {
+      const openCount = state.cases.filter(item => item.status === "Open").length;
+      const progressCount = state.cases.filter(item => item.status === "In Progress").length;
+      const resolvedCount = state.cases.filter(item => item.status === "Resolved").length;
+      const totalCount = Math.max(state.cases.length, 1);
+
+      elements.openChartBar.style.width = `${(openCount / totalCount) * 100}%`;
+      elements.progressChartBar.style.width = `${(progressCount / totalCount) * 100}%`;
+      elements.resolvedChartBar.style.width = `${(resolvedCount / totalCount) * 100}%`;
+
+      elements.openChartValue.textContent = openCount;
+      elements.progressChartValue.textContent = progressCount;
+      elements.resolvedChartValue.textContent = resolvedCount;
+    }
+
+
+    function renderOwnerFilter() {
+      const currentValue = elements.ownerFilter.value;
+      const owners = [...new Set(state.cases.map(item => item.owner).filter(Boolean))].sort();
+
+      elements.ownerFilter.innerHTML = '<option value="all">All Owners</option>';
+      owners.forEach(owner => {
+        const option = document.createElement("option");
+        option.value = owner;
+        option.textContent = owner;
+        elements.ownerFilter.appendChild(option);
+      });
+
+      if (owners.includes(currentValue)) elements.ownerFilter.value = currentValue;
+    }
+
+    function syncSortUI() {
+      elements.sortSelect.value = state.sortKey || "neutral";
+      elements.sortDirectionSelect.value = state.sortDirection || "asc";
+      document.querySelectorAll(".sort-arrow").forEach(button => {
+        button.classList.toggle("active", button.dataset.sortKey === state.sortKey && button.dataset.direction === state.sortDirection);
+      });
+    }
+
+    function renderTable() {
+      syncSortUI();
+      const cases = getVisibleCases();
+      elements.caseTableBody.innerHTML = "";
+      elements.emptyState.hidden = cases.length !== 0;
+
+      cases.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><strong>${escapeHtml(item.customer)}</strong><br><span class="muted">${escapeHtml(item.displayNotes || "No notes")}</span></td>
+          <td>${escapeHtml(item.issue)}</td>
+          <td>${escapeHtml(item.owner)}</td>
+          <td><span class="badge ${badgeClass("priority", item.priority)}">${item.priority}</span></td>
+          <td><span class="badge ${badgeClass("status", item.status)}">${item.status}</span></td>
+          <td class="${isSlaRisk(item) ? "sla-risk" : ""}">${formatDate(item.sla)}</td>
+          <td><div class="row-actions"><button type="button" data-action="edit" data-id="${item.id}">Edit</button><button type="button" data-action="lock" data-id="${item.id}">${isLocked(item) ? "Unlock" : "Lock"}</button><button type="button" class="danger" data-action="delete" data-id="${item.id}">Delete</button></div></td>
+        `;
+        elements.caseTableBody.appendChild(row);
+      });
+    }
+
+    function renderKanban() {
+      const cases = getVisibleCases();
+      const columns = {
+        Open: elements.openKanbanColumn,
+        "In Progress": elements.progressKanbanColumn,
+        Resolved: elements.resolvedKanbanColumn
+      };
+
+      Object.values(columns).forEach(column => column.innerHTML = "");
+
+      cases.forEach(item => {
+        const card = document.createElement("article");
+        card.className = `kanban-card priority-strip-${item.priority.toLowerCase()} ${isLocked(item) ? "locked-card" : ""}`;
+        card.draggable = !isLocked(item);
+        card.dataset.caseId = item.id;
+        card.innerHTML = `
+          <div class="kanban-card-title"><strong>${escapeHtml(item.customer)}</strong><span>${formatShortDate(item.createdAt)}</span></div>
+          <p class="kanban-issue">${escapeHtml(item.issue)}</p>
+          <div class="kanban-meta"><span class="badge ${badgeClass("priority", item.priority)}">${item.priority}</span><span class="badge ${badgeClass("status", item.status)}">${item.status}</span>${isLocked(item) ? '<span class="locked-pill">Locked</span>' : ""}</div>
+          <div class="kanban-info-row"><span>Owner: <strong>${escapeHtml(item.owner)}</strong></span><span class="${isSlaRisk(item) ? "sla-risk" : ""}">SLA: <strong>${formatDate(item.sla)}</strong></span></div>
+          <div class="row-actions compact-actions"><button type="button" data-action="edit" data-id="${item.id}">Edit</button><button type="button" data-action="lock" data-id="${item.id}">${isLocked(item) ? "Unlock" : "Lock"}</button><button type="button" class="danger" data-action="delete" data-id="${item.id}">Delete</button></div>
+        `;
+        columns[item.status].appendChild(card);
+      });
+
+      elements.openKanbanCount.textContent = cases.filter(item => item.status === "Open").length;
+      elements.progressKanbanCount.textContent = cases.filter(item => item.status === "In Progress").length;
+      elements.resolvedKanbanCount.textContent = cases.filter(item => item.status === "Resolved").length;
+    }
+
+    function renderViewMode() {
+      const tableActive = state.viewMode === "table";
+      elements.tableView.style.display = tableActive ? "block" : "none";
+      elements.kanbanView.classList.toggle("active", !tableActive);
+      elements.kanbanTip.classList.toggle("active", !tableActive);
+      elements.viewToggleBtn.textContent = tableActive ? "Kanban View" : "Table View";
+    }
+
+    function render() {
+      renderMetrics();
+      renderChart();
+      renderOwnerFilter();
+      renderTable();
+      renderKanban();
+      renderViewMode();
+    }
+
+    async function syncData() {
+      await loadCases();
+      resetFilters();
+      render();
+      showToast(state.cases.length ? `${state.cases.length} cases synced from Supabase` : "Supabase table is empty", state.cases.length ? "success" : "warning");
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+
+      const existingId = elements.caseId.value;
+      const existingItem = state.cases.find(item => item.id === existingId);
+      const lockTag = existingItem && isLocked(existingItem) ? " [LOCKED]" : "";
+      const payload = {
+        customer: elements.customerInput.value.trim(),
+        issue: elements.issueInput.value,
+        owner: elements.ownerInput.value.trim(),
+        priority: elements.priorityInput.value,
+        status: elements.statusInput.value,
+        sla: elements.slaInput.value,
+        notes: `${elements.notesInput.value.trim()}${lockTag}`.trim()
+      };
+
+      try {
+        if (existingId) {
+          await api(`?id=eq.${encodeURIComponent(existingId)}`, {
+            method: "PATCH",
+            body: JSON.stringify(payload)
+          });
+          showToast("Case updated in Supabase", "success");
+        } else {
+          await api("", {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          showToast("Case saved to Supabase", "success");
+        }
+
+        await loadCases();
+        resetForm();
+        resetFilters();
+        render();
+      } catch (error) {
+        console.error(error);
+        showToast("Save failed", "danger");
+      }
+    }
+
+    async function updateCaseStatus(caseId, nextStatus) {
+      const item = state.cases.find(caseItem => caseItem.id === caseId);
+      if (!item || item.status === nextStatus) return;
+      if (isLocked(item)) {
+        showToast("Locked cases cannot be moved", "warning");
+        return;
+      }
+
+      try {
+        await api(`?id=eq.${encodeURIComponent(caseId)}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: nextStatus })
+        });
+
+        await loadCases();
+        render();
+        showToast(`Moved to ${nextStatus}`, "success");
+      } catch (error) {
+        console.error(error);
+        showToast("Move failed", "danger");
+      }
+    }
+
+    function editCase(id) {
+      const item = state.cases.find(caseItem => caseItem.id === id);
+      if (!item) return;
+
+      elements.caseId.value = item.id;
+      elements.customerInput.value = item.customer;
+      const optionExists = [...elements.issueInput.options].some(option => option.value === item.issue);
+      elements.issueInput.value = optionExists ? item.issue : "Other";
+      elements.ownerInput.value = item.owner;
+      elements.priorityInput.value = item.priority;
+      elements.statusInput.value = item.status;
+      elements.slaInput.value = item.sla;
+      elements.notesInput.value = item.displayNotes || "";
+      elements.formTitle.textContent = "Edit Case";
+      elements.cancelEditBtn.hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+
+    async function toggleLockCase(id) {
+      const item = state.cases.find(caseItem => caseItem.id === id);
+      if (!item) return;
+
+      const nextNotes = isLocked(item)
+        ? cleanNotes(item.notes)
+        : `${cleanNotes(item.notes)} [LOCKED]`.trim();
+
+      try {
+        await api(`?id=eq.${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          body: JSON.stringify({ notes: nextNotes })
+        });
+
+        await loadCases();
+        render();
+        showToast(isLocked(item) ? "Case unlocked" : "Case locked", "success");
+      } catch (error) {
+        console.error(error);
+        showToast("Lock update failed", "danger");
+      }
+    }
+
+    function deleteCase(id) {
+      const item = state.cases.find(caseItem => caseItem.id === id);
+      if (!item) return;
+
+      if (isLocked(item)) {
+        showToast("Unlock this case before deleting it", "warning");
+        return;
+      }
+
+      openConfirmModal({
+        title: "Delete case?",
+        message: "This deletes the row from Supabase.",
+        confirmText: "Delete Case",
+        details: `<strong>${escapeHtml(item.customer)}</strong><br>${escapeHtml(item.issue)}<br><span>Owner: ${escapeHtml(item.owner)}</span>`,
+        onConfirm: async () => {
+          try {
+            await api(`?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+            await loadCases();
+            resetFilters();
+            render();
+            showToast("Case deleted from Supabase", "danger");
+          } catch (error) {
+            console.error(error);
+            showToast("Delete failed", "danger");
+          }
+        }
+      });
+    }
+
+    function resetForm() {
+      elements.form.reset();
+      elements.caseId.value = "";
+      elements.formTitle.textContent = "Add Case";
+      elements.cancelEditBtn.hidden = true;
+    }
+
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let insideQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"' && insideQuotes && nextChar === '"') {
+          value += '"';
+          i++;
+        } else if (char === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (char === "," && !insideQuotes) {
+          row.push(value.trim());
+          value = "";
+        } else if ((char === "\n" || char === "\r") && !insideQuotes) {
+          if (value || row.length) {
+            row.push(value.trim());
+            rows.push(row);
+            row = [];
+            value = "";
+          }
+          if (char === "\r" && nextChar === "\n") i++;
+        } else {
+          value += char;
+        }
+      }
+
+      if (value || row.length) {
+        row.push(value.trim());
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function csvRowsToCases(rows) {
+      if (!rows.length) return [];
+
+      const headers = rows[0].map(header => normalizeText(header));
+      const dataRows = rows.slice(1);
+
+      return dataRows
+        .map(row => {
+          const record = {};
+          headers.forEach((header, index) => {
+            record[header] = row[index] || "";
+          });
+
+          return {
+            customer: record.customer || record.account || record.client || "Imported Account",
+            issue: record.issue || record["issue type"] || "Other",
+            owner: record.owner || "Unassigned",
+            priority: cleanPriority(record.priority),
+            status: cleanStatus(record.status),
+            sla: record.sla || record["sla due date"] || record.date || new Date().toISOString().slice(0, 10),
+            notes: record.notes || ""
+          };
+        })
+        .filter(item => item.customer || item.issue || item.owner);
+    }
+
+    async function importCsvFile(file) {
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const rows = parseCsv(text);
+        const importedCases = csvRowsToCases(rows);
+
+        if (!importedCases.length) {
+          showToast("No valid CSV rows found", "warning");
+          return;
+        }
+
+        await api("", {
+          method: "POST",
+          body: JSON.stringify(importedCases)
+        });
+
+        await loadCases();
+        resetFilters();
+        render();
+        showToast(`${importedCases.length} case${importedCases.length === 1 ? "" : "s"} imported to Supabase`, "success");
+      } catch (error) {
+        console.error(error);
+        showToast("CSV import failed", "danger");
+      } finally {
+        elements.importCsvInput.value = "";
+      }
+    }
+
+    function exportCsv() {
+      const cases = getVisibleCases();
+      if (!cases.length) {
+        showToast("No cases to export", "warning");
+        return;
+      }
+
+      const headers = ["Customer", "Issue", "Owner", "Priority", "Status", "SLA", "Created", "Notes"];
+      const rows = cases.map(item => [item.customer, item.issue, item.owner, item.priority, item.status, item.sla, item.createdAt, item.notes]);
+      const csv = [headers, ...rows].map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "support-operations-cases.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("CSV exported", "success");
+    }
+
+    function openConfirmModal({ title, message, details = "", confirmText = "Confirm", onConfirm }) {
+      state.pendingConfirmAction = onConfirm;
+      elements.confirmTitle.textContent = title;
+      elements.confirmMessage.textContent = message;
+      elements.confirmActionBtn.textContent = confirmText;
+      elements.confirmDetails.innerHTML = details;
+      elements.confirmDetails.classList.toggle("active", Boolean(details));
+      elements.confirmModal.hidden = false;
+    }
+
+    function closeConfirmModal() {
+      state.pendingConfirmAction = null;
+      elements.confirmModal.hidden = true;
+      elements.confirmDetails.innerHTML = "";
+      elements.confirmDetails.classList.remove("active");
+    }
+
+    function showToast(message, type = "success") {
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      elements.toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = "toastOut 0.22s ease both";
+        toast.addEventListener("animationend", () => toast.remove(), { once: true });
+      }, 2200);
+    }
+
+    function applyTheme(theme) {
+      document.body.classList.toggle("light", theme === "light");
+      localStorage.setItem("supportOperationsTheme", theme);
+    }
+
+    function wireEvents() {
+      elements.form.addEventListener("submit", handleSubmit);
+      elements.cancelEditBtn.addEventListener("click", resetForm);
+      elements.syncDataBtn.addEventListener("click", syncData);
+      elements.importCsvBtn.addEventListener("click", () => elements.importCsvInput.click());
+      elements.importCsvInput.addEventListener("change", event => importCsvFile(event.target.files[0]));
+      elements.exportCsvBtn.addEventListener("click", exportCsv);
+      elements.themeToggleBtn.addEventListener("click", () => applyTheme(document.body.classList.contains("light") ? "dark" : "light"));
+      elements.viewToggleBtn.addEventListener("click", () => {
+        state.viewMode = state.viewMode === "table" ? "kanban" : "table";
+        renderViewMode();
+      });
+
+      elements.clearDataBtn.addEventListener("click", () => {
+        openConfirmModal({
+          title: "Clear all cases?",
+          message: "This deletes every row from the Supabase cases table.",
+          confirmText: "Clear Supabase Data",
+          details: `<strong>${state.cases.length}</strong> visible case${state.cases.length === 1 ? "" : "s"} will be removed.`,
+          onConfirm: async () => {
+            try {
+              await api("?id=neq.00000000-0000-0000-0000-000000000000", { method: "DELETE" });
+              await loadCases();
+              resetForm();
+              resetFilters();
+              render();
+              showToast("Supabase table cleared", "warning");
+            } catch (error) {
+              console.error(error);
+              showToast("Clear failed", "danger");
+            }
+          }
+        });
+      });
+
+      [elements.searchInput, elements.statusFilter, elements.priorityFilter, elements.ownerFilter].forEach(control => {
+        control.addEventListener("input", render);
+        control.addEventListener("change", render);
+      });
+
+      elements.sortSelect.addEventListener("change", () => {
+        if (elements.sortSelect.value === "neutral") {
+          state.sortKey = null;
+          state.sortDirection = null;
+        } else {
+          state.sortKey = elements.sortSelect.value;
+          state.sortDirection = elements.sortDirectionSelect.value;
+        }
+        render();
+      });
+
+      elements.sortDirectionSelect.addEventListener("change", () => {
+        if (state.sortKey) state.sortDirection = elements.sortDirectionSelect.value;
+        render();
+      });
+
+      document.querySelectorAll(".sort-arrow").forEach(button => {
+        button.addEventListener("click", () => {
+          const key = button.dataset.sortKey;
+          const direction = button.dataset.direction;
+          if (state.sortKey === key && state.sortDirection === direction) {
+            state.sortKey = null;
+            state.sortDirection = null;
+          } else {
+            state.sortKey = key;
+            state.sortDirection = direction;
+          }
+          render();
+        });
+      });
+
+      document.addEventListener("click", event => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const { action, id } = button.dataset;
+        if (action === "edit") editCase(id);
+        if (action === "lock") toggleLockCase(id);
+        if (action === "delete") deleteCase(id);
+      });
+
+      elements.cancelConfirmBtn.addEventListener("click", closeConfirmModal);
+      elements.confirmActionBtn.addEventListener("click", async () => {
+        const action = state.pendingConfirmAction;
+        closeConfirmModal();
+        if (typeof action === "function") await action();
+      });
+      elements.confirmModal.addEventListener("click", event => {
+        if (event.target === elements.confirmModal) closeConfirmModal();
+      });
+
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !elements.confirmModal.hidden) closeConfirmModal();
+      });
+
+      document.addEventListener("dragstart", event => {
+        const card = event.target.closest(".kanban-card");
+        if (!card) return;
+        const draggedItem = state.cases.find(item => item.id === card.dataset.caseId);
+        if (draggedItem && isLocked(draggedItem)) {
+          event.preventDefault();
+          showToast("Locked cases cannot be moved", "warning");
+          return;
+        }
+        card.classList.add("dragging");
+        event.dataTransfer.setData("text/plain", card.dataset.caseId);
+      });
+
+      document.addEventListener("dragend", event => {
+        const card = event.target.closest(".kanban-card");
+        if (card) card.classList.remove("dragging");
+        document.querySelectorAll(".kanban-column").forEach(column => column.classList.remove("drag-over"));
+      });
+
+      document.querySelectorAll(".kanban-column").forEach(column => {
+        column.addEventListener("dragover", event => {
+          event.preventDefault();
+          column.classList.add("drag-over");
+        });
+
+        column.addEventListener("dragleave", event => {
+          if (!column.contains(event.relatedTarget)) column.classList.remove("drag-over");
+        });
+
+        column.addEventListener("drop", event => {
+          event.preventDefault();
+          column.classList.remove("drag-over");
+          const caseId = event.dataTransfer.getData("text/plain");
+          updateCaseStatus(caseId, column.dataset.status);
+        });
+      });
+    }
+
+    async function init() {
+      wireEvents();
+      applyTheme(localStorage.getItem("supportOperationsTheme") || "dark");
+      await loadCases();
+      resetFilters();
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
